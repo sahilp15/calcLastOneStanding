@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Question {
+  id          String   @id @default(cuid())
+  latex       String   // The LaTeX problem statement
+  options     Json     // String[] of LaTeX answer options
+  answer      String   // The correct answer (LaTeX string matching one of options)
+  explanation String?  // LaTeX explanation
+  difficulty  Int      @default(1) // 1-5
+  topic       String   // e.g., "ratio-test", "taylor-series", etc.
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  rounds      Round[]
+}
+
+model Game {
+  id        String     @id @default(cuid())
+  roomCode  String     @unique
+  status    GameStatus @default(WAITING)
+  createdAt DateTime   @default(now())
+  endedAt   DateTime?
+  winnerId  String?
+  players   Player[]
+  rounds    Round[]
+}
+
+model Player {
+  id           String       @id @default(cuid())
+  gameId       String
+  game         Game         @relation(fields: [gameId], references: [id])
+  nickname     String
+  status       PlayerStatus @default(ACTIVE)
+  score        Int          @default(0)
+  finalRank    Int?
+  joinedAt     DateTime     @default(now())
+  eliminatedAt DateTime?
+  answers      Answer[]
+}
+
+model Round {
+  id              String   @id @default(cuid())
+  gameId          String
+  game            Game     @relation(fields: [gameId], references: [id])
+  questionId      String
+  question        Question @relation(fields: [questionId], references: [id])
+  roundNumber     Int
+  timeLimit       Int      @default(30)
+  startedAt       DateTime @default(now())
+  endedAt         DateTime?
+  eliminatedCount Int      @default(0)
+  answers         Answer[]
+}
+
+model Answer {
+  id         String   @id @default(cuid())
+  roundId    String
+  round      Round    @relation(fields: [roundId], references: [id])
+  playerId   String
+  player     Player   @relation(fields: [playerId], references: [id])
+  answer     String
+  isCorrect  Boolean
+  answeredAt DateTime @default(now())
+  timeMs     Int      // milliseconds to answer
+}
+
+enum GameStatus {
+  WAITING
+  IN_PROGRESS
+  ENDED
+}
+
+enum PlayerStatus {
+  ACTIVE
+  ELIMINATED
+  DISCONNECTED
+}

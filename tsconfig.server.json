@@ -1,0 +1,21 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "ES2020",
+    "moduleResolution": "node",
+    "noEmit": false,
+    "esModuleInterop": true,
+    "outDir": "./dist",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": [
+    "server.ts",
+    "src/lib/**/*",
+    "src/types/**/*",
+    "prisma/**/*"
+  ],
+  "exclude": ["node_modules", ".next"]
+}
